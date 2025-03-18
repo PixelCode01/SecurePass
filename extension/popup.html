@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecurePass</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SecurePass</h1>
+      <div class="subtitle">Password Generator & Strength Analyzer</div>
+    </header>
+
+    <div class="tabs">
+      <button id="tab-generate" class="tab-btn active" data-tab="generate">Generate</button>
+      <button id="tab-analyze" class="tab-btn" data-tab="analyze">Analyze</button>
+      <button id="tab-passwords" class="tab-btn" data-tab="passwords">Passwords</button>
+      <button id="tab-options" class="tab-btn" data-tab="options">Options</button>
+    </div>
+
+    <!-- Generate Password Tab -->
+    <div id="generate" class="tab-content active">
+      <div class="password-display">
+        <input type="text" id="generated-password" readonly>
+        <button id="copy-password" title="Copy to clipboard">
+          <span class="icon">📋</span>
+        </button>
+        <button id="refresh-password" title="Generate new password">
+          <span class="icon">🔄</span>
+        </button>
+      </div>
+
+      <div class="options-group">
+        <label>Password Length: <span id="length-value">16</span></label>
+        <input type="range" id="password-length" min="8" max="64" value="16">
+        
+        <div class="checkbox-options">
+          <label><input type="checkbox" id="use-lowercase" checked> Lowercase (a-z)</label>
+          <label><input type="checkbox" id="use-uppercase" checked> Uppercase (A-Z)</label>
+          <label><input type="checkbox" id="use-digits" checked> Digits (0-9)</label>
+          <label><input type="checkbox" id="use-special" checked> Special (!@#$%)</label>
+        </div>
+      </div>
+
+      <div class="strength-meter">
+        <div class="strength-bar">
+          <div id="strength-indicator" class="strength-indicator"></div>
+        </div>
+        <div id="strength-text" class="strength-text">Password Strength</div>
+      </div>
+
+      <button id="check-hibp" class="action-button">Check Have I Been Pwned</button>
+      <div id="hibp-result" class="result-panel hidden"></div>
+      
+      <button id="save-password" class="action-button">Save Password Hash</button>
+      
+      <!-- New section for saving website credentials -->
+      <div class="site-credentials-form">
+        <h3>Save for Website</h3>
+        <div class="form-group">
+          <label for="website-url">Website URL</label>
+          <input type="text" id="website-url" placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label for="username">Username/Email</label>
+          <input type="text" id="username" placeholder="yourname@example.com">
+        </div>
+        <button id="save-credentials" class="action-button">Save Credentials</button>
+      </div>
+    </div>
+
+    <!-- Analyze Password Tab -->
+    <div id="analyze" class="tab-content">
+      <div class="password-input">
+        <input type="password" id="password-to-check" placeholder="Enter password to analyze">
+        <button id="toggle-visibility" title="Toggle visibility">
+          <span class="icon">👁️</span>
+        </button>
+      </div>
+      
+      <button id="analyze-password" class="action-button">Analyze Password</button>
+      
+      <div id="analysis-result" class="result-panel hidden">
+        <div class="strength-meter">
+          <div class="strength-bar">
+            <div id="analysis-strength-indicator" class="strength-indicator"></div>
+          </div>
+          <div id="analysis-strength-text" class="strength-text">Password Strength</div>
+        </div>
+        
+        <div id="analysis-details"></div>
+        <div id="analysis-feedback"></div>
+      </div>
+
+      <button id="check-hibp-existing" class="action-button">Check Have I Been Pwned</button>
+      <div id="hibp-result-existing" class="result-panel hidden"></div>
+    </div>
+
+    <!-- New Passwords Tab -->
+    <div id="passwords" class="tab-content">
+      <h2>Saved Passwords</h2>
+      <div class="saved-passwords-container">
+        <div id="password-list" class="password-list">
+          <!-- Passwords will be listed here dynamically -->
+          <div class="no-passwords-message">No saved passwords yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options Tab -->
+    <div id="options" class="tab-content">
+      <h2>Advanced Options</h2>
+      
+      <div class="option-group">
+        <label>Hashing Algorithm</label>
+        <select id="hash-algorithm">
+          <option value="pbkdf2">PBKDF2 (Recommended)</option>
+          <option value="bcrypt" disabled>bcrypt (Not available in browser)</option>
+        </select>
+      </div>
+      
+      <div class="option-group">
+        <label>PBKDF2 Iterations</label>
+        <input type="number" id="pbkdf2-iterations" value="100000" min="10000">
+        <span class="hint">Higher is more secure but slower (min 10,000)</span>
+      </div>
+      
+      <div class="option-group">
+        <label>Gemini API Key (for AI-powered analysis)</label>
+        <input type="password" id="gemini-api-key" placeholder="Enter your Gemini API key">
+        <span class="hint">Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></span>
+      </div>
+      
+      <div class="option-group">
+        <label>
+          <input type="checkbox" id="auto-check-hibp" checked>
+          Automatically check new passwords with Have I Been Pwned
+        </label>
+      </div>
+      
+      <div class="option-group">
+        <label>
+          <input type="checkbox" id="offer-generation" checked>
+          Offer to generate passwords on websites
+        </label>
+      </div>
+      
+      <div class="option-group">
+        <label>
+          <input type="checkbox" id="clear-clipboard">
+          Clear clipboard after 
+          <select id="clear-clipboard-time">
+            <option value="30">30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="300">5 minutes</option>
+          </select>
+        </label>
+      </div>
+      
+      <button id="save-options" class="action-button">Save Options</button>
+    </div>
+
+    <footer>
+      <div class="version">SecurePass v1.0.0</div>
+    </footer>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
